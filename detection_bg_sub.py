@@ -14,7 +14,7 @@ MIN_AREA = 250
 
 video = cv2.VideoCapture("material/video0/video.mp4")
 
-subtractor = KNN_subtractor
+subtractor = MOG2_subtractor
 
 def compute_mse_per_object(predicted_dict, actual_dict):
     mse_per_id = {}
@@ -27,7 +27,7 @@ def compute_mse_per_object(predicted_dict, actual_dict):
         actuals = np.array(actual_dict[object_id])[:, 0]
 
         min_len = min(len(preds), len(actuals))
-        if min_len >= 30:
+        if min_len >= 100:
             mse = mean_squared_error(actuals[:min_len], preds[:min_len])
             mse_per_id[object_id] = round(mse, 2)
 
@@ -82,6 +82,29 @@ pred = tracker.tracked_trajectories
 
 mse_per_id = compute_mse_per_object(pred, motion)
 
-plt.bar(list(mse_per_id.keys()), mse_per_id.values(), color='g')
-plt.show()
+with open("mse_per_id.csv", "w") as f:
+    for obj_id, mse in mse_per_id.items():
+        f.write(f"{obj_id},{mse}\n")
+
+
+with open('tracked_history.txt', 'w') as f:
+    for obj_id, centroids in motion.items():
+        if len(centroids) < 30:
+            continue
+        f.write(f"Object ID {obj_id}:\n")
+        for centroid in centroids:
+            x, y = centroid
+            f.write(f"{x[0]:.1f}, {y[0]:.1f}\n")
+        f.write("\n")
+
+with open('motion_history.txt', 'w') as f:
+    for obj_id, centroids in pred.items():
+        if len(centroids) < 30:
+            continue
+        f.write(f"Object ID {obj_id}:\n")
+        for centroid in centroids:
+            x, y = centroid
+            f.write(f"{x[0]:.1f}, {y[0]:.1f}\n")
+        f.write("\n")
+
 
