@@ -14,7 +14,13 @@ MIN_AREA = 250
 
 video = cv2.VideoCapture("material/video0/video.mp4")
 
-subtractor = MOG2_subtractor
+width  = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
+height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+fps    = video.get(cv2.CAP_PROP_FPS)
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out = cv2.VideoWriter('output_video0.avi', fourcc, fps, (width, height))
+
+subtractor = KNN_subtractor
 
 def compute_mse_per_object(predicted_dict, actual_dict):
     mse_per_id = {}
@@ -32,7 +38,6 @@ def compute_mse_per_object(predicted_dict, actual_dict):
             mse_per_id[object_id] = round(mse, 2)
 
     return mse_per_id
-
 
 while True:
     ret, frame = video.read()
@@ -65,16 +70,20 @@ while True:
     for d in tracked_objects:
         x1, y1, x2, y2, track_id = map(int, d)
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-        cv2.putText(frame, f'ID {track_id}', (x1, y1 - 10),
+        cv2.putText(frame, f"ID {track_id}", (x1, y1 - 10),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
     
-    cv2.imshow('Tracked', frame)
-    cv2.imshow('Motion mask', dilated_motion_mask)
+    cv2.imshow("Tracked", frame)
+    cv2.imshow("Motion mask", dilated_motion_mask)
 
-    if cv2.waitKey(10) == ord('q'):
+    out.write(frame)
+
+
+    if cv2.waitKey(10) == ord("q"):
         break
 
 video.release()
+out.release()
 cv2.destroyAllWindows()
 
 motion = tracker.motion_trajectories
@@ -87,7 +96,7 @@ with open("mse_per_id.csv", "w") as f:
         f.write(f"{obj_id},{mse}\n")
 
 
-with open('tracked_history.txt', 'w') as f:
+with open("tracked_history.txt", "w") as f:
     for obj_id, centroids in motion.items():
         if len(centroids) < 30:
             continue
@@ -97,7 +106,7 @@ with open('tracked_history.txt', 'w') as f:
             f.write(f"{x[0]:.1f}, {y[0]:.1f}\n")
         f.write("\n")
 
-with open('motion_history.txt', 'w') as f:
+with open("motion_history.txt", "w") as f:
     for obj_id, centroids in pred.items():
         if len(centroids) < 30:
             continue
