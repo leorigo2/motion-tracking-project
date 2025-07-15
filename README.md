@@ -27,4 +27,15 @@ The order to run the scripts:
    ```
    Performs the frequent path anaylisis and return a decreasing by value dictionary where the first element is the most frequent path.
 
+To change the video on wich perform the tracking, change this line in detection_bg_sub.py choosing between video0 or video3
+```
+video = cv2.VideoCapture("material/video0/video.mp4")
+```
+For the most frequent patch, change those two lines choosing between video0 and video3 in the dedicated script:
+```
+image = cv2.imread("material/video0/reference.jpeg")
+
+with open("material/video0/annotations.txt", "r") as f:
+```
+
 Full explanation of how the system works and its results is in the project report and in the demo video. 
